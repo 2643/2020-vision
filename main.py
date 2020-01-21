@@ -5,7 +5,6 @@ import os
 import dotenv
 import cv2
 import numpy as np
-from pathlib import Path
 from networktables import NetworkTables
 
 dotenv.load_dotenv()
