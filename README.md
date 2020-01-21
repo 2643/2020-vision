@@ -15,10 +15,11 @@ Libraries currently in use:
 
 ---
 
-Usage of dot-env allows for some on the fly configurations:
+Usage of dot-env allows for easy configuration:
 
 - Tolerances for angle recognition
 - Hold duration (in # of loops which may vary by a few ms)
+- Verbosity
 
 *Planned*
 

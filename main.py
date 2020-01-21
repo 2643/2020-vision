@@ -29,7 +29,9 @@ def get_slope(x1, y1, x2, y2):
 def check_slope(cur_slope, check_slope, counter):
     """Returns acceptability and whether that run was truely valid"""
     if cur_slope >= (check_slope-float(os.getenv('ANGLE_TOLERANCE'))) and cur_slope <= (check_slope+float(os.getenv('ANGLE_TOLERANCE'))):
-        print(f'matches {check_slope} at {cur_slope}')
+        global verbose
+        if verbose:
+            print(f'matches {check_slope} at {cur_slope}')
         return ({'present': True, 'counter': int(os.getenv('MAX_HOLD'))}, True)
     elif counter > 0:
         return ({'present': True, 'counter': counter-1}, False)
@@ -37,6 +39,7 @@ def check_slope(cur_slope, check_slope, counter):
         return ({'present': False, 'counter': 0}, False)
 
 while True:
+    verbose = os.getenv('VERBOSE') == 'True'
     left_angle = float(os.getenv('LEFT_ANGLE'))
     right_angle = float(os.getenv('RIGHT_ANGLE')) 
     bottom_angle = float(os.getenv('BOTTOM_ANGLE'))
@@ -76,7 +79,8 @@ while True:
                 stat['present'] = False
                 stat['counter'] = 0
     if all(item['present'] for item in stats):
-        print('Target Found.')
+        if verbose:
+            print('Target Found.')
         x_vals = [validpts[index]['x'][index_two] for index in range(len(validpts)) for index_two in range(len(validpts[index]['x']))]
         x_avg = int(sum(x_vals)/len(x_vals))
         y_vals = [validpts[index]['y'][index_two] for index in range(len(validpts)) for index_two in range(len(validpts[index]['y']))]
@@ -84,7 +88,7 @@ while True:
         y_avg = int(sum(y_vals)/len(y_vals))
         target_position = (x_avg, y_avg-offset_to_middle)
         cv2.circle(black, target_position, 5, (0,255,0))
-    else:
+    elif verbose:
         print('Not found.')            
     
     cv2.imshow('raw_image', frame)

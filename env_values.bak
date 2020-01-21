@@ -4,3 +4,4 @@ BOTTOM_ANGLE=          # 0 This is the angle calculated for the bottom.
 ANGLE_TOLERANCE=       # 0.2 This is the leeway in how off the angle can be.
 MAX_HOLD=              # 25 This is the amount of loops it the counter holds true.
 TIMEOUT=               # 1 This is the length of time to wait for the Hough Line transform.
+VERBOSE=               # False This tells whether or not to print output.
