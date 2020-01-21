@@ -21,24 +21,28 @@ maxLineGap = 20
 left_angle_stat = {'present': False, 'counter': 0}
 right_angle_stat = {'present': False, 'counter': 0}
 bottom_angle_stat = {'present': False, 'counter': 0}
+validpts = [{'x':[], 'y':[]},{'x':[], 'y':[]},{'x':[], 'y':[]}]
+target_position = (-1, -1)
 
 def get_slope(x1, y1, x2, y2):
     return (y2-y1)/(x2-x1)
 
 def check_slope(cur_slope, check_slope, counter):
+    """Returns acceptability and whether that run was truely valid"""
     if cur_slope >= (check_slope-float(os.getenv('ANGLE_TOLERANCE'))) and cur_slope <= (check_slope+float(os.getenv('ANGLE_TOLERANCE'))):
         print(f'matches {check_slope} at {cur_slope}')
-        return {'present': True, 'counter': int(os.getenv('MAX_HOLD'))}
+        return ({'present': True, 'counter': int(os.getenv('MAX_HOLD'))}, True)
     elif counter > 0:
-        return {'present': True, 'counter': counter-1}
+        return ({'present': True, 'counter': counter-1}, False)
     else:
-        return {'present': False, 'counter': 0}
+        return ({'present': False, 'counter': 0}, False)
 
 while True:
     left_angle = float(os.getenv('LEFT_ANGLE'))
     right_angle = float(os.getenv('RIGHT_ANGLE')) 
     bottom_angle = float(os.getenv('BOTTOM_ANGLE'))
     stats = [left_angle_stat, right_angle_stat, bottom_angle_stat]
+    check_vals = [left_angle, right_angle, bottom_angle]
     
     frame = cap.read()[1]
     #TODO inRange for our UV wavelength
@@ -55,9 +59,16 @@ while True:
             for x1, y1, x2, y2 in unpacked_line:
                 cv2.line(black, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cur_slope = get_slope(x1, y1, x2, y2)
-                left_angle_stat = check_slope(cur_slope, left_angle, left_angle_stat['counter'])
-                right_angle_stat = check_slope(cur_slope, right_angle, right_angle_stat['counter'])
-                bottom_angle_stat = check_slope(cur_slope, bottom_angle, bottom_angle_stat['counter'])
+                for index in range(len(stats)):
+                    return_value = check_slope(cur_slope, check_vals[index], stats[index]['counter'])
+                    stats[index] = return_value[0]
+                    if return_value[1]:
+                        validpts[index]['x'].extend((x1, x2))
+                        validpts[index]['y'].extend((y1, y2))
+                    elif not stats[index]['present']:
+                        validpts[index] = {'x':[], 'y':[]}
+
+
     else:
         for stat in stats:
             if stat['counter'] > 0:
@@ -67,11 +78,19 @@ while True:
                 stat['counter'] = 0
     if all(item['present'] for item in stats):
         print('Target Found.')
-    else: print('Not found.')            
+        x_vals = [validpts[index]['x'][index_two] for index in range(len(validpts)) for index_two in range(len(validpts[index]['x']))]
+        x_avg = int(sum(x_vals)/len(x_vals))
+        y_vals = [validpts[index]['y'][index_two] for index in range(len(validpts)) for index_two in range(len(validpts[index]['y']))]
+        offset_to_middle = int(max(y_vals)-min(y_vals))
+        y_avg = int(sum(y_vals)/len(y_vals))
+        target_position = (x_avg, y_avg-offset_to_middle)
+        cv2.circle(black, target_position, 5, (0,255,0))
+    else:
+        print('Not found.')            
     
     cv2.imshow('raw_image', frame)
     cv2.imshow('processed_image', edges)
-    cv2.imshow('lines', black)
+    cv2.imshow('lines', black) 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
