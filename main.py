@@ -30,10 +30,8 @@ def check_slope(cur_slope, check_slope, counter):
         return (True, int(os.getenv('MAX_HOLD')))
         
     elif counter > 0:
-        #print('counter hold...')
         return (True, counter-1)
     else:
-        #print("You're stupid")
         return (False, 0)
 
 while True:
