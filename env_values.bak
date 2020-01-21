@@ -1,0 +1,5 @@
+LEFT_ANGLE=1.73  # 1.73378583657 This is the angle calculated for the left side.
+RIGHT_ANGLE=-1.73  #  -1.73378583657 This is the angle calculated for the right side.
+BOTTOM_ANGLE=0  #  0 This is the angle calculated for the bottom.
+ANGLE_TOLERANCE=0.3  # This is the leeway in how off the angle can be.
+MAX_HOLD=25  # This is the amount of loops it the counter holds true.
