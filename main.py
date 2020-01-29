@@ -14,13 +14,23 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-cap = cv2.VideoCapture(-1)
-cap.set(cv2.CAP_PROP_FPS, 5)
-cap.set(cv2.CAP_PROP_EXPOSURE, 10)
+CONFIGURE = True
+cap = cv2.VideoCapture(2)
+
+if CONFIGURE:
+    print("configuring camera")
+    print("setting fps")
+    cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
+    print("disabling auto exposure")
+    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+    print("setting exposure")
+    cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
+    print("camera configuration complete")
+
 
 kernel = np.ones((5, 5), np.uint8)
-minLineLength = 5
-maxLineGap = 20
+minLineLength = 10
+maxLineGap = 10
 
 left_angle_stat = {'present': False, 'counter': 0}
 right_angle_stat = {'present': False, 'counter': 0}
@@ -97,17 +107,19 @@ for target in target_list:
 
 while True:
     frame = cap.read()[1]
+    frame = cv2.blur(frame, (5,5))
     # TODO inRange for our UV wavelength
     thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV),
-                                (283, 100, 71), # These values are for UV
-                                (260, 100, 100))
+                                 (113, 89, 0), # These values are for UV
+                                 (123, 255, 80))
     #thresh = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
-    opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-    edges = cv2.Canny(opened, 100, 200)
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 10, minLineLength, maxLineGap)
+    opened = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
+    edges = cv2.Canny(dilate, 100, 200)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 10, minLineLength=minLineLength, maxLineGap=maxLineGap)
 
     if type(lines) != type(None):
         for unpacked_line in lines:
@@ -171,7 +183,7 @@ while True:
                 table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
                 table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
             if verbosity >= 1:
-                cv2.circle(black, target_position, 5, target['found_center_color'])
+                cv2.circle(black, target_position, 20, target['found_center_color'])
         elif verbosity >= 2:
             print(f'{target_name} not found.')
             if config.getboolean('CONNECT_TO_SERVER'):
