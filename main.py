@@ -29,8 +29,8 @@ if CONFIGURE:
 
 
 kernel = np.ones((5, 5), np.uint8)
-minLineLength = 5
-maxLineGap = 5
+minLineLength = config.getint('MAX_LINE_LENGTH')
+maxLineGap = config.getint('MAX_LINE_GAP')
 
 left_angle_stat = {'present': False, 'counter': 0}
 right_angle_stat = {'present': False, 'counter': 0}
@@ -119,7 +119,7 @@ while True:
     opened = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
     edges = cv2.Canny(dilate, 100, 200)
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 10, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 150, minLineLength=minLineLength, maxLineGap=maxLineGap)
 
     if type(lines) != type(None):
         for unpacked_line in lines:
