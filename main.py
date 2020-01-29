@@ -29,8 +29,8 @@ if CONFIGURE:
 
 
 kernel = np.ones((5, 5), np.uint8)
-minLineLength = 10
-maxLineGap = 10
+minLineLength = 5
+maxLineGap = 5
 
 left_angle_stat = {'present': False, 'counter': 0}
 right_angle_stat = {'present': False, 'counter': 0}
