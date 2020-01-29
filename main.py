@@ -87,7 +87,7 @@ for target in target_list:
     targets[target]['half_target'] = config_parser[target].getboolean('HALF_TARGET')
     targets[target]['offset_direction'] = config_parser[target]['OFFSET_DIRECTION'].lower()
     targets[target]['target_color'] = tuple(map(int, config_parser[target]['TARGET_COLOR'].split()))
-    targets[target]['current_center_color'] = tuple(map(int, config_parser[target]['CURRENT_CENTER_COLOR'].split()))
+    targets[target]['found_center_color'] = tuple(map(int, config_parser[target]['FOUND_CENTER_COLOR'].split()))
     for angle_name in targets[target]['angle_names']:
         targets[target][angle_name] = {'angle': config_parser[target].getfloat(
             angle_name), 'present': False, 'counter': 0, 'valid_points': {'x': [], 'y': []}}
@@ -168,13 +168,13 @@ while True:
                 table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
                 table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
 
-            cv2.circle(black, target_position, 5, (0, 255, 0))
+            cv2.circle(black, target_position, 5, target['found_center_target'])
         elif verbosity >= 2:
             print(f'{target_name} not found.')
             if target.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', False)
 
-        cv2.circle(black, (target['x_target'], y_target), 5, (0, 0, 255))
+        cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
