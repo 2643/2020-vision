@@ -14,30 +14,20 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-CONFIGURE = True
-cap = cv2.VideoCapture(2)
-
-if CONFIGURE:
-    print("configuring camera")
-    print("setting fps")
-    cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
-    print("disabling auto exposure")
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-    print("setting exposure")
-    cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
-    print("camera configuration complete")
-
+cap = cv2.VideoCapture(-2)
+cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
+cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
 
 kernel = np.ones((5, 5), np.uint8)
-minLineLength = config.getint('MAX_LINE_LENGTH')
+minLineLength = config.getint('MIN_LINE_LENGTH')
 maxLineGap = config.getint('MAX_LINE_GAP')
+min_color = tuple(map(int, config['MIN_COLOR'].split()))
+max_color = tuple(map(int, config['MAX_COLOR'].split()))
 
 left_angle_stat = {'present': False, 'counter': 0}
 right_angle_stat = {'present': False, 'counter': 0}
 bottom_angle_stat = {'present': False, 'counter': 0}
-validpts = [{'x': [], 'y':[]}, {'x': [], 'y':[]}, {'x': [], 'y':[]}]
-target_position = (-1, -1)
-
 
 def get_slope(x1, y1, x2, y2):
     global config
@@ -104,22 +94,21 @@ for target in target_list:
     for angle_name in targets[target]['angle_names']:
         targets[target][angle_name] = {'angle': config_parser[target].getfloat(
             angle_name), 'present': False, 'counter': 0, 'valid_points': {'x': [], 'y': []}}
-
+            
 while True:
     frame = cap.read()[1]
     frame = cv2.blur(frame, (5,5))
     # TODO inRange for our UV wavelength
-    thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV),
-                                 (113, 89, 0), # These values are for UV
-                                 (123, 255, 80))
+    thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV), min_color, max_color)
     #thresh = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
-    opened = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel)
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
     edges = cv2.Canny(dilate, 100, 200)
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 150, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50, minLineLength=minLineLength, maxLineGap=maxLineGap)
 
     if type(lines) != type(None):
         for unpacked_line in lines:
@@ -152,46 +141,55 @@ while True:
                     target[angle_name]['counter'] = 0
     for target_name in targets:
         target = targets[target_name]
-        if all(target[angle_name]['present'] for angle_name in target['angle_names']):
-            if verbosity >= 2:
-                print(f'{target_name} found.')
-            x_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
-            x_avg = int(sum(x_vals)/len(x_vals))
-            y_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['y']]
-            y_avg = int(sum(y_vals)/len(y_vals))
-            
-            if target['half_target']:
-                if target['offset_direction'] == 'up':
-                    offset_to_middle = int(max(y_vals)-min(y_vals))
-                    target_position = (x_avg, y_avg-offset_to_middle)
-                if target['offset_direction'] == 'down':
-                    offset_to_middle = int(max(y_vals)-min(y_vals))
-                    target_position = (x_avg, y_avg+offset_to_middle)
-                if target['offset_direction'] == 'left':
-                    offset_to_middle = int(max(x_vals)-min(x_vals))
-                    target_position = (x_avg-offset_to_middle, y_avg)
-                if target['offset_direction'] == 'right':
-                    offset_to_middle = int(max(y_vals)-min(y_vals))
-                    target_position = (x_avg+offset_to_middle, y_avg)
-            else:
-                target_position = (x_avg, y_avg)
+        success = True
+        prev_sum = 0
+        for angle_name in target['angle_names']:
+            cur_sum = sum(target[angle_name]['valid_points']['x'])
+            if prev_sum > cur_sum:
+                success = False
+        if success:
+            if all(target[angle_name]['present'] for angle_name in target['angle_names']):
+                [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
+                if verbosity >= 2:
+                    print(f'{target_name} found.')
+                x_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
+                x_avg = int(sum(x_vals)/len(x_vals))
+                y_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['y']]
+                y_avg = int(sum(y_vals)/len(y_vals))
+                
+                if target['half_target']:
+                    if target['offset_direction'] == 'up':
+                        offset_to_middle = int(max(y_vals)-min(y_vals))
+                        target_position = (x_avg, y_avg-offset_to_middle)
+                    if target['offset_direction'] == 'down':
+                        offset_to_middle = int(max(y_vals)-min(y_vals))
+                        target_position = (x_avg, y_avg+offset_to_middle)
+                    if target['offset_direction'] == 'left':
+                        offset_to_middle = int(max(x_vals)-min(x_vals))
+                        target_position = (x_avg-offset_to_middle, y_avg)
+                    if target['offset_direction'] == 'right':
+                        offset_to_middle = int(max(y_vals)-min(y_vals))
+                        target_position = (x_avg+offset_to_middle, y_avg)
+                else:
+                    target_position = (x_avg, y_avg)
 
-            if config.getboolean('CONNECT_TO_SERVER'):
-                table.putBoolean('valid', True)
-                table.putNumber(f'{target}_x', target_position[0])
-                table.putNumber(f'{target}_y', target_position[1])
-                table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
-                table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
+                if config.getboolean('CONNECT_TO_SERVER'):
+                    table.putBoolean('valid', True)
+                    table.putNumber(f'{target}_x', target_position[0])
+                    table.putNumber(f'{target}_y', target_position[1])
+                    table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
+                    table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
+                if verbosity >= 1:
+                    cv2.circle(black, target_position, 5, target['found_center_color'])
+            elif verbosity >= 2:
+                print(f'{target_name} not found.')
+                if config.getboolean('CONNECT_TO_SERVER'):
+                    table.putBoolean('valid', False)
             if verbosity >= 1:
-                cv2.circle(black, target_position, 20, target['found_center_color'])
-        elif verbosity >= 2:
-            print(f'{target_name} not found.')
-            if config.getboolean('CONNECT_TO_SERVER'):
-                table.putBoolean('valid', False)
-        if verbosity >= 1:
-            cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
+                cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
-        cv2.imshow('thresh', thresh)
+        if verbosity > 4:
+            cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
         cv2.imshow('lines', black)
