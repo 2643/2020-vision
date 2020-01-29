@@ -30,6 +30,9 @@ target_position = (-1, -1)
 
 
 def get_slope(x1, y1, x2, y2):
+    global config
+    if (x2-x1) < config.getint('VERTICAL_CHANGE'):
+        return 99
     return (y2-y1)/(x2-x1)
 
 
@@ -123,7 +126,7 @@ while True:
                                 (x1, x2))
                             target[angle_name]['valid_points']['y'].extend(
                                 (y1, y2))
-                        elif return_value[0]['present']:
+                        elif not return_value[0]['present']:
                             target[angle_name]['valid_points'].update(
                                 {'x': [], 'y': []})
 
@@ -138,10 +141,9 @@ while True:
                     target[angle_name]['counter'] = 0
     for target_name in targets:
         target = targets[target_name]
-        if all(item['present'] for angle_name in target['angle_names'] for item in target[angle_name]):
+        if all(target[angle_name]['present'] for angle_name in target['angle_names']):
             if verbosity >= 2:
                 print(f'{target_name} found.')
-
             x_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
             x_avg = int(sum(x_vals)/len(x_vals))
             y_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['y']]
@@ -160,6 +162,8 @@ while True:
                 if target['offset_direction'] == 'right':
                     offset_to_middle = int(max(y_vals)-min(y_vals))
                     target_position = (x_avg+offset_to_middle, y_avg)
+            else:
+                target_position = (x_avg, y_avg)
 
             if config.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', True)
@@ -167,14 +171,14 @@ while True:
                 table.putNumber(f'{target}_y', target_position[1])
                 table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
                 table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
-
-            cv2.circle(black, target_position, 5, target['found_center_target'])
+            if verbosity >= 1:
+                cv2.circle(black, target_position, 5, target['found_center_color'])
         elif verbosity >= 2:
             print(f'{target_name} not found.')
-            if target.getboolean('CONNECT_TO_SERVER'):
+            if config.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', False)
-
-        cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
+        if verbosity >= 1:
+            cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
