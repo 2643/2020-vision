@@ -15,7 +15,7 @@ target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
 cap = cv2.VideoCapture(-1)
-cap.set(cv2.CAP_PROP_FPS, 1)
+cap.set(cv2.CAP_PROP_FPS, 5)
 cap.set(cv2.CAP_PROP_EXPOSURE, 10)
 
 kernel = np.ones((5, 5), np.uint8)
@@ -95,14 +95,13 @@ for target in target_list:
         targets[target][angle_name] = {'angle': config_parser[target].getfloat(
             angle_name), 'present': False, 'counter': 0, 'valid_points': {'x': [], 'y': []}}
 
-print(targets)
 while True:
     frame = cap.read()[1]
     # TODO inRange for our UV wavelength
-    # thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV),
-    #                              (113, 89, 0), # These values are for 4
-    #                              (123, 255, 80))
-    thresh = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV),
+                                (283, 100, 71), # These values are for UV
+                                (260, 100, 100))
+    #thresh = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
@@ -180,6 +179,7 @@ while True:
         if verbosity >= 1:
             cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
+        cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
         cv2.imshow('lines', black)
