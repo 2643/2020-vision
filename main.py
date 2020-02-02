@@ -188,11 +188,11 @@ while True:
             if verbosity >= 1:
                 cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
-        if verbosity > 4:
-            cv2.imshow('thresh', thresh)
+        cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
         cv2.imshow('lines', black)
+        
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
