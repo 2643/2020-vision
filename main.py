@@ -14,7 +14,7 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-cap = cv2.VideoCapture(-2)
+cap = cv2.VideoCapture(2)
 cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
 cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
@@ -97,7 +97,7 @@ for target in target_list:
             
 while True:
     frame = cap.read()[1]
-    frame = cv2.blur(frame, (5,5))
+    #frame = cv2.blur(frame, (5,5))
     # TODO inRange for our UV wavelength
     thresh = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV), min_color, max_color)
     #thresh = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -108,7 +108,7 @@ while True:
     opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel)
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
     edges = cv2.Canny(dilate, 100, 200)
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 20, minLineLength=minLineLength, maxLineGap=maxLineGap)
 
     if type(lines) != type(None):
         for unpacked_line in lines:
@@ -143,10 +143,10 @@ while True:
         target = targets[target_name]
         success = True
         prev_sum = 0
-        for angle_name in target['angle_names']:
-            cur_sum = sum(target[angle_name]['valid_points']['x'])
-            if prev_sum > cur_sum:
-                success = False
+        # for angle_name in target['angle_names']:
+        #     cur_sum = sum(target[angle_name]['valid_points']['x'])
+        #     if prev_sum > cur_sum:
+        #         success = False
         if success:
             if all(target[angle_name]['present'] for angle_name in target['angle_names']):
                 [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
@@ -180,7 +180,7 @@ while True:
                     table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
                     table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
                 if verbosity >= 1:
-                    cv2.circle(black, target_position, 5, target['found_center_color'])
+                    cv2.circle(black, target_position, 15, target['found_center_color'])
             elif verbosity >= 2:
                 print(f'{target_name} not found.')
                 if config.getboolean('CONNECT_TO_SERVER'):
