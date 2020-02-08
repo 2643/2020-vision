@@ -9,7 +9,7 @@ from networktables import NetworkTables
 
 config_parser = configparser.ConfigParser()
 config_parser.read('config.conf')
-target = config_parser['2019-High-Target']
+target = config_parser['2020-High-Target']
 config = config_parser['SETTINGS']
 
 cap = cv2.VideoCapture(-1)
@@ -29,6 +29,10 @@ target_position = (-1, -1)
 
 def get_slope(x1, y1, x2, y2):
     return (y2-y1)/(x2-x1)
+
+
+def correct_position():
+    pass
 
 
 def check_slope(cur_slope, check_slope, counter):
@@ -56,7 +60,9 @@ def connect():
 
     NetworkTables.initialize(server = '10.26.43.2')
     NetworkTables.addConnectionListener(
-        connectionListener, immediateNotify = True)
+        connectionListener,
+        immediateNotify = True
+    )
 
     with cond:
         print("Waiting")
