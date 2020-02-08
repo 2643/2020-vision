@@ -31,8 +31,69 @@ def get_slope(x1, y1, x2, y2):
     return (y2-y1)/(x2-x1)
 
 
-def correct_position():
-    pass
+def correct_position(cap, minimumTargetSize):
+    ret, frame = cap.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    ret, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    npFrame = np.array(threshold)
+
+    height = npFrame.shape[0]
+    width = npFrame.shape[1]
+
+    notSeen = False
+    tooSmall = False
+
+    imagePosition = [False, False, False, False]
+    # [leftEnd, rightEnd, topEnd, bottomEnd]
+    movement = [False, False, False, False]
+    # [turnLeft, turnRight, moveBack, moveForward]
+    frameAverage = np.average(npFrame)
+
+    # Check if a target is in sight
+    if (frameAverage > 0):
+
+        # Check if the target is large enough
+        if (frameAverage > minimumTargetSize):
+            # Check the ends of the image to get the target in sight
+            # Left end
+            if (np.average(npFrame[:, 0]) > 0):
+                imagePosition[0] = True
+                movement[0] = True
+
+            # Right end
+            if (np.average(npFrame[:, width]) > 0):
+                imagePosition[1] = True
+                movement[1] = True
+
+            # Top end
+            if (np.average(npFrame[0, :]) > 0):
+                imagePosition[2] = True
+                movement[3] = True
+
+            # Bottom end
+            if (np.average(npFrame[height, :]) > 0):
+                imagePosition[3] = True
+                movement[3] = True
+
+        else:
+            notSeen = true
+            print("Vision target too far away")
+    else:
+        notSeen = True
+        print("No target in sight")
+
+    # Error check the movement list
+    if (movement[0] == movement[1]):
+        movement[0] = False
+        movement[1] = False
+        movement[3] = True
+        print("Too close, move back")
+
+    if (movement[2] == movement[3]):
+        print("Bruh, what did you even do")
+
+    # Return the movment list
+    return movement
 
 
 def check_slope(cur_slope, check_slope, counter):
