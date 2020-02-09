@@ -105,10 +105,10 @@ while True:
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
     closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel)
+    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
-    edges = cv2.Canny(dilate, 100, 200)
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 20, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    edges = cv2.Canny(dilate, 10, 100)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/360, 20, minLineLength=minLineLength, maxLineGap=maxLineGap)
 
     if type(lines) != type(None):
         for unpacked_line in lines:
@@ -180,7 +180,8 @@ while True:
                     table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
                     table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
                 if verbosity >= 1:
-                    cv2.circle(black, target_position, 15, target['found_center_color'])
+                    cv2.circle(black, tuple(map(abs, target_position)), 15, target['found_center_color'])
+                    print(target_position)
             elif verbosity >= 2:
                 print(f'{target_name} not found.')
                 if config.getboolean('CONNECT_TO_SERVER'):
@@ -188,6 +189,7 @@ while True:
             if verbosity >= 1:
                 cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
+        cv2.line(black, (355, 100), (200, 300), (255, 0, 0))
         cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
