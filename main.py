@@ -31,7 +31,7 @@ bottom_angle_stat = {'present': False, 'counter': 0}
 
 def get_slope(x1, y1, x2, y2):
     global config
-    if (x2-x1) < config.getint('VERTICAL_CHANGE'):
+    if abs(x2-x1) < config.getint('VERTICAL_CHANGE'):
         return 99
     return (y2-y1)/(x2-x1)
 
@@ -118,6 +118,7 @@ while True:
                 for target_name in targets:
                     target = targets[target_name]
                     for angle_name in target['angle_names']:
+                        #print(cur_slope)
                         return_value = check_slope(
                             target, cur_slope, target[angle_name]['angle'], target[angle_name]['counter'])
                         target[angle_name].update(return_value[0])
@@ -129,7 +130,6 @@ while True:
                         elif not return_value[0]['present']:
                             target[angle_name]['valid_points'].update(
                                 {'x': [], 'y': []})
-
     else:
         for target_name in targets:
             target = targets[target_name]
@@ -139,55 +139,50 @@ while True:
                 else:
                     target[angle_name]['present'] = False
                     target[angle_name]['counter'] = 0
+    #print(targets)
     for target_name in targets:
         target = targets[target_name]
-        success = True
         prev_sum = 0
-        # for angle_name in target['angle_names']:
-        #     cur_sum = sum(target[angle_name]['valid_points']['x'])
-        #     if prev_sum > cur_sum:
-        #         success = False
-        if success:
-            if all(target[angle_name]['present'] for angle_name in target['angle_names']):
-                [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
-                if verbosity >= 2:
-                    print(f'{target_name} found.')
-                x_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
-                x_avg = int(sum(x_vals)/len(x_vals))
-                y_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['y']]
-                y_avg = int(sum(y_vals)/len(y_vals))
-                
-                if target['half_target']:
-                    if target['offset_direction'] == 'up':
-                        offset_to_middle = int(max(y_vals)-min(y_vals))
-                        target_position = (x_avg, y_avg-offset_to_middle)
-                    if target['offset_direction'] == 'down':
-                        offset_to_middle = int(max(y_vals)-min(y_vals))
-                        target_position = (x_avg, y_avg+offset_to_middle)
-                    if target['offset_direction'] == 'left':
-                        offset_to_middle = int(max(x_vals)-min(x_vals))
-                        target_position = (x_avg-offset_to_middle, y_avg)
-                    if target['offset_direction'] == 'right':
-                        offset_to_middle = int(max(y_vals)-min(y_vals))
-                        target_position = (x_avg+offset_to_middle, y_avg)
-                else:
-                    target_position = (x_avg, y_avg)
+        if all(target[angle_name]['present'] for angle_name in target['angle_names']):
+            [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
+            if verbosity >= 2:
+                print(f'{target_name} found.')
+            x_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['x']]
+            x_avg = int(sum(x_vals)/len(x_vals))
+            y_vals = [item for angle_name in target['angle_names'] for item in target[angle_name]['valid_points']['y']]
+            y_avg = int(sum(y_vals)/len(y_vals))
+            
+            if target['half_target']:
+                if target['offset_direction'] == 'up':
+                    offset_to_middle = int(max(y_vals)-min(y_vals))
+                    target_position = (x_avg, y_avg-offset_to_middle)
+                if target['offset_direction'] == 'down':
+                    offset_to_middle = int(max(y_vals)-min(y_vals))
+                    target_position = (x_avg, y_avg+offset_to_middle)
+                if target['offset_direction'] == 'left':
+                    offset_to_middle = int(max(x_vals)-min(x_vals))
+                    target_position = (x_avg-offset_to_middle, y_avg)
+                if target['offset_direction'] == 'right':
+                    offset_to_middle = int(max(y_vals)-min(y_vals))
+                    target_position = (x_avg+offset_to_middle, y_avg)
+            else:
+                target_position = (x_avg, y_avg)
 
-                if config.getboolean('CONNECT_TO_SERVER'):
-                    table.putBoolean('valid', True)
-                    table.putNumber(f'{target}_x', target_position[0])
-                    table.putNumber(f'{target}_y', target_position[1])
-                    table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
-                    table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
-                if verbosity >= 1:
-                    cv2.circle(black, tuple(map(abs, target_position)), 15, target['found_center_color'])
-                    print(target_position)
-            elif verbosity >= 2:
-                print(f'{target_name} not found.')
-                if config.getboolean('CONNECT_TO_SERVER'):
-                    table.putBoolean('valid', False)
+            if config.getboolean('CONNECT_TO_SERVER'):
+                table.putBoolean('valid', True)
+                table.putNumber(f'{target}_x', target_position[0])
+                table.putNumber(f'{target}_y', target_position[1])
+                table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
+                table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
             if verbosity >= 1:
-                cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
+                cv2.circle(black, tuple(map(abs, target_position)), 15, target['found_center_color'])
+                print(target_position)
+        elif verbosity >= 2:
+            print(f'{target_name} not found.')
+            if config.getboolean('CONNECT_TO_SERVER'):
+                table.putBoolean('valid', False)
+        if verbosity >= 1:
+            cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
         cv2.line(black, (355, 100), (200, 300), (255, 0, 0))
         cv2.imshow('thresh', thresh)
