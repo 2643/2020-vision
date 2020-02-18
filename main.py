@@ -3,6 +3,7 @@
 import os
 import threading
 import configparser
+import networktables
 import cv2
 import numpy as np
 from networktables import NetworkTables
@@ -25,6 +26,9 @@ right_angle_stat = {'present': False, 'counter': 0}
 bottom_angle_stat = {'present': False, 'counter': 0}
 validpts = [{'x': [], 'y':[]}, {'x': [], 'y':[]}, {'x': [], 'y':[]}]
 target_position = (-1, -1)
+
+NetworkTables.initialize(server='roborio-2643-frc.local')
+network_table = NetworkTables.getTable("vision_movement")
 
 
 def get_slope(x1, y1, x2, y2):
@@ -93,6 +97,7 @@ def correct_position(cap, minimumTargetSize):
         print("Bruh, what did you even do")
 
     # Return the movment list
+    network_table.putBooleanArray('movement_array', movement)
     return movement
 
 
