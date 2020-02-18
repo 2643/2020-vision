@@ -156,7 +156,19 @@ while True:
     check_vals=[left_angle, right_angle, bottom_angle]
 
     frame=cap.read()[1]
-    # TODO inRange for our UV wavelength
+    
+    minimumTargetSize = #TARGET SIZE VALUE
+    correction = True
+    numberOfMoves = 0
+
+    while correction == true:
+        correctionMoves = correct_position(minimumTargetSize)
+
+        for move in correctionMoves:
+            if move == False:
+                numberOfMoves++
+
+
     thresh=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     x_size=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     y_size=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
