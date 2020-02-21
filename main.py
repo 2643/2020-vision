@@ -94,10 +94,17 @@ def correct_position(cap, minimumTargetSize):
         print("Too close, move back")
 
     if (movement[2] == movement[3]):
-        print("Bruh, what did you even do")
+        movement[2] = False
+        movement[3] = False
+        print("There is most likely an obstruction")
 
     # Return the movment list
-    network_table.putBooleanArray('movement_array', movement)
+    for move in movement:
+        movesExist = true
+    }
+    if movesExist == true:
+        network_table.putBooleanArray('movement_array', movement)
+    
     return movement
 
 
@@ -156,18 +163,18 @@ while True:
     check_vals=[left_angle, right_angle, bottom_angle]
 
     frame=cap.read()[1]
-    
+
     minimumTargetSize = #TARGET SIZE VALUE
     correction = True
     numberOfMoves = 0
 
     while correction == true:
         correctionMoves = correct_position(minimumTargetSize)
-
         for move in correctionMoves:
-            if move == False:
-                numberOfMoves++
-
+            if move == True:
+                numberOfMoves += 1
+        if numberOfMoves == 0:
+            correction = False
 
     thresh=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     x_size=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
