@@ -101,10 +101,10 @@ def correct_position(cap, minimumTargetSize):
     # Return the movment list
     for move in movement:
         movesExist = true
-    }
+    
     if movesExist == true:
         network_table.putBooleanArray('movement_array', movement)
-    
+
     return movement
 
 
@@ -164,7 +164,7 @@ while True:
 
     frame=cap.read()[1]
 
-    minimumTargetSize = #TARGET SIZE VALUE
+    minimumTargetSize = 1 #TARGET SIZE VALUE
     correction = True
     numberOfMoves = 0
 
