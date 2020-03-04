@@ -59,7 +59,7 @@ def connect():
             notified[0] = True
             cond.notify()
 
-    NetworkTables.initialize(server='10.26.43.2')
+    NetworkTables.initialize(server='roborio-2643-frc.local')
     NetworkTables.addConnectionListener(
         connectionListener, immediateNotify=True)
 
@@ -68,7 +68,7 @@ def connect():
         if not notified[0]:
             cond.wait()
 
-    return NetworkTables.getTable('Vision')
+    return NetworkTables.getTable('vision-movement')
 
 
 if config.getboolean('CONNECT_TO_SERVER'):
@@ -105,7 +105,7 @@ while True:
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
     closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, nroborio-2643-frc.localp.ones((2, 2), np.uint8))
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
     edges = cv2.Canny(dilate, 10, 100)
     lines = cv2.HoughLinesP(edges, 1, np.pi/360, 20, minLineLength=minLineLength, maxLineGap=maxLineGap)
@@ -172,8 +172,15 @@ while True:
                 table.putBoolean('valid', True)
                 table.putNumber(f'{target}_x', target_position[0])
                 table.putNumber(f'{target}_y', target_position[1])
-                table.putNumber(f'{target}_x_offset', (target_position[0]-target['x_target']))
-                table.putNumber(f'{target}_y_offset', (target_position[1]-target['y_target']))
+                x_offset = target_position[0]-target['x_target']
+                table.putNumber(f'{target}_x_offset', y_offset)
+                y_offset = target_position[1]-target['y_target']
+                table.putNumber(f'{target}_y_offset', y)
+                if x_offset > 25:
+                    table.putBooleanArray('movement_array', [False, True, False, False])
+                if x_offset < 25:
+                    table.putBooleanArray('movement_array', [True, False, False, False])
+
             if verbosity >= 1:
                 cv2.circle(black, tuple(map(abs, target_position)), 15, target['found_center_color'])
                 print(target_position)
