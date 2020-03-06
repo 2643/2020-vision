@@ -124,10 +124,8 @@ while True:
                             target, cur_slope, target[angle_name]['angle'], target[angle_name]['counter'])
                         target[angle_name].update(return_value[0])
                         if return_value[1]:
-                            target[angle_name]['valid_points']['x'].extend(
-                                (x1, x2))
-                            target[angle_name]['valid_points']['y'].extend(
-                                (y1, y2))
+                            target[angle_name]['valid_points']['x'] = [x1, x2] + target[angle_name]['valid_points']['x'][:18]
+                            target[angle_name]['valid_points']['y'] = [y1, y2] + target[angle_name]['valid_points']['x'][:18]
                         elif not return_value[0]['present']:
                             target[angle_name]['valid_points'].update(
                                 {'x': [], 'y': []})
