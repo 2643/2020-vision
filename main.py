@@ -14,7 +14,7 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-cap = cv2.VideoCapture(-1)
+cap = cv2.VideoCapture(2)
 cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
 cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
@@ -164,28 +164,32 @@ while True:
                 if target['offset_direction'] == 'right':
                     offset_to_middle = int(max(y_vals)-min(y_vals))
                     target_position = (x_avg+offset_to_middle, y_avg)
+                else:
+                    target_position = (x_avg, y_avg)
             else:
                 target_position = (x_avg, y_avg)
 
+            x_offset = target_position[0]-target['x_target']
+            y_offset = target_position[1]-target['y_target']
+
             if config.getboolean('DEBUG'):
-                print(target_position)
+                print(target_position, x_offset, y_offset)
 
             if config.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', True)
                 table.putNumber(f'{target}_x', target_position[0])
                 table.putNumber(f'{target}_y', target_position[1])
-                x_offset = target_position[0]-target['x_target']
                 table.putNumber(f'{target}_x_offset', x_offset)
-                y_offset = target_position[1]-target['y_target']
                 table.putNumber(f'{target}_y_offset', y_offset)
-                if x_offset > 25:
+                if x_offset > 20:
                     table.putBooleanArray('movement_array', [False, True, False, False])
-                if x_offset < 25:
+                if x_offset < 20:
                     table.putBooleanArray('movement_array', [True, False, False, False])
 
             if verbosity >= 1:
+                # cv2.circle(black, tuple(map(abs, (x_avg, y_avg))), 15, target['found_center_color'])
                 cv2.circle(black, tuple(map(abs, target_position)), 15, target['found_center_color'])
-                print(target_position)
+                #print(target_position)
         elif verbosity >= 2:
             print(f'{target_name} not found.')
             if config.getboolean('CONNECT_TO_SERVER'):
