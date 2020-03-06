@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+import threading
 import configparser
 import cv2
-import time
 import numpy as np
 from networktables import NetworkTables
 
@@ -50,11 +50,26 @@ def check_slope(target, cur_slope, check_slope, counter):
 
 
 def connect():
-    NetworkTables.initialize(server='roborio-2643-frc.local')
+    cond = threading.Condition()
+    notified = [False]
 
-    print('Network Tables connect attempted.')
-    print(NetworkTables.isConnected())
+    def connectionListener(connected, info):
+        print(info, '; Connected=%s' % connected)
+        with cond:
+            notified[0] = True
+            cond.notify()
+
+    NetworkTables.initialize(server='roborio-2643-frc.local')
+    NetworkTables.addConnectionListener(
+        connectionListener, immediateNotify=True)
+
+    with cond:
+        print("Waiting")
+        if not notified[0]:
+            cond.wait()
+
     return NetworkTables.getTable('vision-movement')
+
 
 
 if config.getboolean('CONNECT_TO_SERVER'):
