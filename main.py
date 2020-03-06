@@ -159,9 +159,9 @@ while True:
                 table.putNumber(f'{target}_x', target_position[0])
                 table.putNumber(f'{target}_y', target_position[1])
                 x_offset = target_position[0]-target['x_target']
-                table.putNumber(f'{target}_x_offset', y_offset)
+                table.putNumber(f'{target}_x_offset', x_offset)
                 y_offset = target_position[1]-target['y_target']
-                table.putNumber(f'{target}_y_offset', y)
+                table.putNumber(f'{target}_y_offset', y_offset)
                 if x_offset > 25:
                     table.putBooleanArray('movement_array', [False, True, False, False])
                 if x_offset < 25:
