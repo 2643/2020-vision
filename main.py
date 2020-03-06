@@ -167,6 +167,9 @@ while True:
             else:
                 target_position = (x_avg, y_avg)
 
+            if config.getboolean('DEBUG'):
+                print(target_position)
+
             if config.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', True)
                 table.putNumber(f'{target}_x', target_position[0])
