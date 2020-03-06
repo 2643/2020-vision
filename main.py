@@ -197,7 +197,7 @@ while True:
         if verbosity >= 1:
             cv2.circle(black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
-        cv2.line(black, (355, 100), (200, 300), (255, 0, 0))
+        #cv2.line(black, (355, 100), (200, 300), (255, 0, 0))
         cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
