@@ -50,7 +50,7 @@ def check_slope(target, cur_slope, check_slope, counter):
 
 
 def connect():
-    NetworkTables.initialize(server="10.26.43.2")
+    NetworkTables.initialize(server='roborio-2643-frc.local')
     while not NetworkTables.isConnected():
         print("Trying to connect...")
         time.sleep(0.5)
