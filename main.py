@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import threading
 import configparser
 import cv2
+import time
 import numpy as np
 from networktables import NetworkTables
 
@@ -14,7 +14,7 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(-1)
 cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
 cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
@@ -50,24 +50,12 @@ def check_slope(target, cur_slope, check_slope, counter):
 
 
 def connect():
-    cond = threading.Condition()
-    notified = [False]
+    NetworkTables.initialize(server="10.26.43.2")
+    while not NetworkTables.isConnected():
+        print("Trying to connect...")
+        time.sleep(0.5)
 
-    def connectionListener(connected, info):
-        print(info, '; Connected=%s' % connected)
-        with cond:
-            notified[0] = True
-            cond.notify()
-
-    NetworkTables.initialize(server='roborio-2643-frc.local')
-    NetworkTables.addConnectionListener(
-        connectionListener, immediateNotify=True)
-
-    with cond:
-        print("Waiting")
-        if not notified[0]:
-            cond.wait()
-
+    print('Network Tables connected.')
     return NetworkTables.getTable('vision-movement')
 
 
@@ -105,7 +93,7 @@ while True:
     y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     black = np.zeros((y_size, x_size, 3), np.uint8)
     closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, nroborio-2643-frc.localp.ones((2, 2), np.uint8))
+    opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
     dilate = cv2.morphologyEx(opened, cv2.MORPH_DILATE, kernel)
     edges = cv2.Canny(dilate, 10, 100)
     lines = cv2.HoughLinesP(edges, 1, np.pi/360, 20, minLineLength=minLineLength, maxLineGap=maxLineGap)
