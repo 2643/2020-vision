@@ -192,10 +192,10 @@ while True:
                 table.putNumber(f'{target_name}_y', target_position[1])
                 table.putNumber(f'{target_name}_x_offset', x_offset)
                 table.putNumber(f'{target_name}_y_offset', y_offset)
-                if x_offset > 20:
+                if x_offset > 2:
                     table.putBooleanArray(
                         'movement_array', [False, True, False, False])
-                elif x_offset < 20:
+                elif x_offset < -2:
                     table.putBooleanArray(
                         'movement_array', [True, False, False, False])
                 else:
