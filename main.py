@@ -188,10 +188,10 @@ while True:
 
             if config.getboolean('CONNECT_TO_SERVER'):
                 table.putBoolean('valid', True)
-                table.putNumber(f'{target}_x', target_position[0])
-                table.putNumber(f'{target}_y', target_position[1])
-                table.putNumber(f'{target}_x_offset', x_offset)
-                table.putNumber(f'{target}_y_offset', y_offset)
+                table.putNumber(f'{target_name}_x', target_position[0])
+                table.putNumber(f'{target_name}_y', target_position[1])
+                table.putNumber(f'{target_name}_x_offset', x_offset)
+                table.putNumber(f'{target_name}_y_offset', y_offset)
                 if x_offset > 20:
                     table.putBooleanArray(
                         'movement_array', [False, True, False, False])
