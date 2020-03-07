@@ -210,6 +210,10 @@ while True:
         elif verbosity >= 2:
             print(f'{target_name} not found.')
             if config.getboolean('CONNECT_TO_SERVER'):
+                table.putBooleanArray(
+                        'movement_array', [False, False, False, False])
+                table.putNumber(f'{target_name}_x_offset', 0)
+                table.putNumber(f'{target_name}_y_offset', 0)
                 table.putBoolean('valid', False)
         if verbosity >= 1:
             cv2.circle(
