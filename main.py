@@ -14,7 +14,7 @@ verbosity = config.getint('VERBOSITY')
 target_list = list(config_parser.sections())
 target_list.remove('SETTINGS')
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(config.getint('CAMERA_NUM'))
 cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
 cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
