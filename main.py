@@ -77,6 +77,8 @@ if config.getboolean('CONNECT_TO_SERVER'):
 
 x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+center = (x_size/2, y_size/2)
+scale = 1.0
 print(f'The current image is {x_size}, {y_size}')
 
 targets = {}
@@ -101,6 +103,9 @@ for target in target_list:
 
 while True:
     frame = cap.read()[1]
+    M = cv2.getRotationMatrix2D(center, config.getint('ROTATION'), scale)
+    frame = cv2.warpAffine(frame, M, (x_size, y_size))
+ 
     #frame = cv2.blur(frame, (5,5))
     # TODO inRange for our UV wavelength
     thresh = cv2.inRange(cv2.cvtColor(
@@ -219,7 +224,7 @@ while True:
             cv2.circle(
                 black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
-        #cv2.line(black, (355, 100), (200, 300), (255, 0, 0))
+        cv2.line(black, (100, 100), (200, 285), (255, 0, 0))
         cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
