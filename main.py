@@ -224,7 +224,8 @@ while True:
             cv2.circle(
                 black, (target['x_target'], target['y_target']), 5, target['target_color'])
     if verbosity >= 1:
-        cv2.line(black, (100, 100), (200, 285), (255, 0, 0))
+        if config.getboolean('DEBUG'):
+            pass
         cv2.imshow('thresh', thresh)
         cv2.imshow('raw_image', frame)
         cv2.imshow('processed_image', edges)
