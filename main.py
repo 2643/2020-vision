@@ -16,7 +16,7 @@ target_list.remove('SETTINGS')
 
 cap = cv2.VideoCapture(2)
 cap.set(cv2.CAP_PROP_FPS, config.getint('FPS'))
-cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
 cap.set(cv2.CAP_PROP_EXPOSURE, config.getint('EXPOSURE'))
 
 kernel = np.ones((5, 5), np.uint8)
@@ -197,10 +197,10 @@ while True:
                 table.putNumber(f'{target_name}_y', target_position[1])
                 table.putNumber(f'{target_name}_x_offset', x_offset)
                 table.putNumber(f'{target_name}_y_offset', y_offset)
-                if x_offset > 2:
+                if x_offset > 20:
                     table.putBooleanArray(
                         'movement_array', [False, True, False, False])
-                elif x_offset < -2:
+                elif x_offset < -20:
                     table.putBooleanArray(
                         'movement_array', [True, False, False, False])
                 else:
